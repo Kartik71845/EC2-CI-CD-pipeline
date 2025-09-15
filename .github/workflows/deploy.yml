@@ -1,5 +1,4 @@
 name: Deploy Website to EC2 
-
 on:
   push:
     branches:
@@ -30,16 +29,19 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Install Apache if not already installed
-            if ! command -v httpd &> /dev/null; then
-              echo "Installing Apache..."
-              sudo apt-get update -y
-              sudo apt-get install -y httpd
-              sudo systemctl enable httpd
-              sudo systemctl start httpd
+            # Install Apache2 if not already installed
+            if ! command -v apache2 &> /dev/null; then
+              echo "Installing Apache2..."
+              sudo apt update -y
+              sudo apt install -y apache2
+              sudo systemctl enable apache2
+              sudo systemctl start apache2
             fi
 
-            # Copy website files to Apache root
+            # Copy website file to Apache root
             sudo mv /tmp/index.html /var/www/html/index.html
-            sudo systemctl restart httpd
-            echo "Deployment complete!"
+
+            # Restart Apache
+            sudo systemctl restart apache2
+
+            echo "Website deployed successfully!"

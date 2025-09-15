@@ -20,8 +20,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          source: "."
-          target: "~/website"
+          source: "index.html"
+          target: "/tmp/index.html"
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
@@ -30,16 +30,16 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            # Install Node.js, npm, and PM2 if missing
-            if ! command -v node &> /dev/null; then
-              echo "Installing Node.js and npm..."
+            # Install Apache if not already installed
+            if ! command -v httpd &> /dev/null; then
+              echo "Installing Apache..."
               sudo yum update -y
-              sudo yum install -y nodejs npm
-              sudo npm install -g pm2
+              sudo yum install -y httpd
+              sudo systemctl enable httpd
+              sudo systemctl start httpd
             fi
 
-            # Go to website folder
-            cd ~/website
-
-            # Install dependencies
-            echo "Installing dependencies..."
+            # Copy website files to Apache root
+            sudo mv /tmp/index.html /var/www/html/index.html
+            sudo systemctl restart httpd
+            echo "Deployment complete!"
